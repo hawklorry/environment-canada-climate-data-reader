@@ -1262,7 +1262,7 @@ namespace Ionic.Zip
         ///   zipfile correctly, you have to specify the same codepage at the time you
         ///   read it. If try to read that zip file with Windows Explorer or another
         ///   application that is not flexible with respect to the codepage used to
-        ///   decode filenames in zipfiles, you will get a filename like "Inf°.txt".
+        ///   decode filenames in zipfiles, you will get a filename like "Inf?txt".
         /// </para>
         ///
         /// <para>

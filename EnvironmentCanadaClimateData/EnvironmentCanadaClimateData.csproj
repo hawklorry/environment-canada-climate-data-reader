@@ -37,6 +37,15 @@
     <ApplicationIcon>Resources\Icon1.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DotSpatial.Data">
+      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="DotSpatial.Projections">
+      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Projections.dll</HintPath>
+    </Reference>
+    <Reference Include="DotSpatial.Topology">
+      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Topology.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -107,6 +116,12 @@
     </Compile>
     <Compile Include="FrmHelp.Designer.cs">
       <DependentUpon>FrmHelp.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmHuzelnutSuitability.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmHuzelnutSuitability.Designer.cs">
+      <DependentUpon>FrmHuzelnutSuitability.cs</DependentUpon>
     </Compile>
     <Compile Include="FrmStationInformation.cs">
       <SubType>Form</SubType>
@@ -198,6 +213,9 @@
     <EmbeddedResource Include="FrmHelp.resx">
       <DependentUpon>FrmHelp.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FrmHuzelnutSuitability.resx">
+      <DependentUpon>FrmHuzelnutSuitability.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmStationInformation.resx">
       <DependentUpon>FrmStationInformation.cs</DependentUpon>
     </EmbeddedResource>
@@ -223,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ecstations.csv" />
+    <None Include="Resources\EC_Stations.zip" />
     <None Include="Resources\Icon1.ico" />
   </ItemGroup>
   <ItemGroup />

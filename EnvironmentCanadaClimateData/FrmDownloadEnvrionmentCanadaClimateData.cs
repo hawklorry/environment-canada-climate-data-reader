@@ -23,12 +23,15 @@ namespace HAWKLORRY
         private List<ECStationInfo> _stations = null;
         private bool _isDownloadAllStations = false;
 
+
+        private static int[] DATA_FIELD_INDEX_DAILY_TEMP = { 5, 7, 9 };
         private static int[] DATA_FIELD_INDEX_DAILY = { 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25 };
         private static string[] DATA_FIELD_NAME_DAILY = 
         {   "Max Temp (°C)","Min Temp (°C)","Mean Temp (°C)","Heat Deg Days (°C)",
             "Cool Deg Days (°C)","Total Rain (mm)","Total Snow (cm)","Total Precip (mm)",
             "Snow on Grnd (cm)","Dir of Max Gust (10s deg)","Spd of Max Gust (km/h)"};
 
+        private static int[] DATA_FIELD_INDEX_HOURLY_TEMP = { 6 };
         private static int[] DATA_FIELD_INDEX_HOURLY = { 6, 8, 10, 12, 14, 16, 18, 20, 22 };
         private static string[] DATA_FIELD_NAME_HOURLY = 
         {   "Temp (°C)", "Dew Point Temp (°C)", "Rel Hum (%)", "Wind Dir (10s deg)",
@@ -171,6 +174,17 @@ namespace HAWKLORRY
                 };
             txtPath.TextChanged += (s, ee) => { if (System.IO.Directory.Exists(txtPath.Text)) _path = txtPath.Text; else txtPath.Text = _path; };
 
+            bGetAllStations.Click += (s, ee) =>
+                {
+                    if (backgroundWorker1.IsBusy)
+                    {
+                        showInformationWindow("Please wait current process to finish.");
+                        return;
+                    }
+
+                    _isDownloadAllStations = true;
+                    backgroundWorker1.RunWorkerAsync();
+                };
 
             //download button
             bDownload.Click += (s, ee) =>
@@ -227,6 +241,7 @@ namespace HAWKLORRY
             };
             backgroundWorker1.RunWorkerCompleted += (s, ee) => 
             {
+                _isDownloadAllStations = false;
                 //this.progressBar1.Value = this.progressBar1.Maximum;
                 //this.richTextBox1.Text += "finished";                                   
             };

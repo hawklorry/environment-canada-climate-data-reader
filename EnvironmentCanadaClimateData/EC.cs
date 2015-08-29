@@ -11,6 +11,8 @@ using LumenWorks.Framework.IO.Csv;
 using System.Data;
 using System.Data.OleDb;
 using SocialExplorer.IO.FastDBF;
+using DotSpatial.Data;
+using DotSpatial.Topology;
 
 namespace HAWKLORRY
 {
@@ -19,8 +21,11 @@ namespace HAWKLORRY
         private static string DOMAIN = "http://climate.weather.gc.ca";
 
         private static int HEADER_LINE_HOURLY = 17;
-        private static int HEADER_LINE_DAILY = 25;
+        private static int HEADER_LINE_DAILY = 26;
 
+        /// <summary>
+        /// hourly and daily is defined by timefram
+        /// </summary>
         private static string DATA_REQUEST_URL_FORMAT = 
             DOMAIN +
             "/climateData/bulkdata_e.html?" + 
@@ -50,7 +55,7 @@ namespace HAWKLORRY
             {
                 using (Stream stream = response.GetResponseStream())
                 {
-                    using (StreamReader reader = new StreamReader(stream, Encoding.Default))
+                    using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
                     {
                         return reader.ReadToEnd();
                     }
@@ -95,8 +100,20 @@ namespace HAWKLORRY
         /// </summary>
         /// <param name="year"></param>
         /// <returns></returns>
-        private static string RequestClimateData(string stationID, int year, int month, ECDataIntervalType interval, bool keepHeader = true)
+        private static string RequestClimateData(string stationID, int year, int month, 
+            ECDataIntervalType interval, bool keepHeader = true, bool savedCacheFile = false)
         {
+            //read from cache if it exists
+            string cache = getCachePath(stationID, interval, year, month);
+            if (File.Exists(cache))
+            {
+                using (StreamReader reader = new StreamReader(cache))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+
+            //request from website if the cache file doesn't exist
             string csv = sendRequest(
                 string.Format(DATA_REQUEST_URL_FORMAT, stationID, year, month, Convert.ToInt32(interval)));
 
@@ -113,12 +130,21 @@ namespace HAWKLORRY
                     string line = reader.ReadLine();
                     lineNum++;
 
-                    if (lineNum == 1 && !line.ToLower().Contains("station name")) return ""; //no data for this year
+                    if (lineNum == 1 && !line.ToLower().Contains("station name")) break; //no data for this year
                     if (lineNum < headLine) continue;
 
                     sb.AppendLine(line);
                     sb.AppendLine(reader.ReadToEnd()); //read all other contents
                     break;
+                }
+            }
+
+            //save to cache file even nothing is there to avoid request to server next time
+            if (savedCacheFile)
+            {
+                using (StreamWriter writer = new StreamWriter(cache))
+                {
+                    writer.Write(sb);
                 }
             }
 
@@ -130,9 +156,9 @@ namespace HAWKLORRY
         /// </summary>
         /// <param name="year"></param>
         /// <returns></returns>
-        public static string RequestHourlyClimateData(string stationID, int year, int month, bool keepHeader = true)
+        public static string RequestHourlyClimateData(string stationID, int year, int month, bool keepHeader = true,bool savedCacheFile = false)
         {
-            return RequestClimateData(stationID, year, month, ECDataIntervalType.HOURLY, keepHeader);
+            return RequestClimateData(stationID, year, month, ECDataIntervalType.HOURLY, keepHeader, savedCacheFile);
         }
 
         /// <summary>
@@ -165,9 +191,46 @@ namespace HAWKLORRY
         /// </summary>
         /// <param name="year"></param>
         /// <returns></returns>
-        public static string RequestAnnualDailyClimateData(string stationID, int year, bool keepHeader = true)
+        public static string RequestAnnualDailyClimateData(string stationID, int year, bool keepHeader = true, bool savedCacheFile = false)
         {
-            return RequestClimateData(stationID, year, 8, ECDataIntervalType.DAILY, keepHeader);
+            return RequestClimateData(stationID, year, 8, ECDataIntervalType.DAILY, keepHeader, savedCacheFile);
+        }
+
+        public static string getCachePath(string stationID, ECDataIntervalType interval, int year, int month)
+        {
+            //create the cache folder if necessary
+            string cache = Path.Combine(CACHE_PATH, stationID);
+            if (!Directory.Exists(cache)) Directory.CreateDirectory(cache);
+            cache = Path.Combine(cache, interval.ToString().ToLower());
+            if (!Directory.Exists(cache)) Directory.CreateDirectory(cache);
+
+            //save to the file
+            cache = Path.Combine(cache,
+                interval == ECDataIntervalType.DAILY ? string.Format("{0}.csv", year) : string.Format("{0}_{1}.csv", year, month));
+
+            return cache;
+        }
+
+        private static string CACHE_PATH = CachePath;
+
+        private static string CachePath
+        {
+            get
+            {
+                string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\cache\";
+                if (!System.IO.Directory.Exists(path))
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(path);
+                    }
+                    catch (System.Exception e)
+                    {
+                        throw e;
+                    }
+                }
+                return path;
+            }
         }
 
     }
@@ -271,6 +334,50 @@ namespace HAWKLORRY
 
         private static string FILE_NAME_EC_STATIONS_CSV = "ecstations_with_timeRange.csv";
         private static string FILE_NAME_SELECTED_STATIONS_CSV = "ecstations_selected.csv";
+        private static string FILE_NAME_EC_STATIONS_ZIP = "EC_Stations.zip"; //this is the shapefile
+        private static string FILE_NAME_EC_STATIONS_SHAPEFILE_IN_BOUNDARY = "stationsInBoundary.shp"; //this is the shapefile
+
+        public static string GetStationsInBoundary()
+        {
+            string path = System.IO.Path.GetTempPath();
+            path += @"ECReader\";
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            path += @"StationsInBoundary\";
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path + FILE_NAME_EC_STATIONS_SHAPEFILE_IN_BOUNDARY;
+        }
+
+        /// <summary>
+        /// get default ecstations.csv in system temp folder. If doesn't exist, create using the resource file.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetAllStationShapeFile()
+        {
+            string path = System.IO.Path.GetTempPath();
+            path += @"ECReader\";
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            string file = path + FILE_NAME_EC_STATIONS_ZIP;
+
+            if (!System.IO.File.Exists(file))
+            {
+                using (BinaryWriter writer = new BinaryWriter(File.Open(file, FileMode.Create)))
+                    writer.Write(Properties.Resources.EC_Stations);
+
+                //try to extrac the shapefile
+                using (Ionic.Zip.ZipFile zip = Ionic.Zip.ZipFile.Read(file))
+                {
+                    foreach (Ionic.Zip.ZipEntry e in zip)
+                        e.Extract(path);
+                }
+            }
+            
+            //find the shapefile
+            IEnumerable<string> files = Directory.EnumerateFiles(path, "*.shp");
+            if (files.Count<string>() == 0)
+                throw new Exception("Couldn't fined climate station shapefile!");
+
+            return files.First<string>();
+        }
 
         /// <summary>
         /// get default ecstations.csv in system temp folder. If doesn't exist, create using the resource file.
@@ -339,6 +446,65 @@ namespace HAWKLORRY
         public static List<ECStationInfo> Search(string SQL)
         {
             return ECStationInfo.FromCSVDataRows(ALL_STATIONS_TABLE.Select(SQL));
+        }
+
+        /// <summary>
+        /// Find all climate stations inside a given boundary by shapefile
+        /// </summary>
+        /// <param name="shapefilePath"></param>
+        /// <returns></returns>
+        public static List<ECStationInfo> SearchByShapefile(string shapefilePath)
+        {
+            if (!System.IO.File.Exists(shapefilePath))
+                throw new Exception(shapefilePath + " doesn't exit!");
+
+            string allStationShapeFile = GetAllStationShapeFile();
+            Shapefile allsf = Shapefile.OpenFile(allStationShapeFile);
+            Shapefile sf = Shapefile.OpenFile(shapefilePath);
+
+            try
+            {
+                //check the projection, make sure it's use WGS1984
+                if (!sf.Projection.GeographicInfo.Name.Equals("GCS_North_American_1983"))
+                    throw new Exception("The boundary shapefile should use GCS_North_American_1983 projection!");
+                
+                if(sf.FeatureType != FeatureType.Polygon)
+                    throw new Exception("The boundary shapefile is not polygon!");
+
+                //return value
+                List<ECStationInfo> selectedStations = new List<ECStationInfo>();
+
+                //shapefile for all stations in boundary
+                //the existing file will be overwrite
+                MultiPointShapefile selectedStationsShapefile = new MultiPointShapefile();
+                selectedStationsShapefile.Projection = allsf.Projection;
+
+                //try to find all the climate stations located in boundary
+                List<IFeature> stations = allsf.Select(sf.Extent);
+                foreach (IFeature station in stations)
+                {
+                    foreach (IFeature boundary in sf.Features)
+                    {
+                        if ((boundary.BasicGeometry as IPolygon).Contains(station.BasicGeometry as IGeometry))
+                        {
+                            selectedStations.Add(new ECStationInfo(station.DataRow));
+                            selectedStationsShapefile.Features.Add(station);
+                            break;
+                        }
+                    }                    
+                }
+
+                //save stations in boundary to the shapefile
+                selectedStationsShapefile.SaveAs(GetStationsInBoundary(), true);
+
+                return selectedStations;
+            }
+            finally
+            {
+                allsf.Close();
+                sf.Close();
+            }               
+
         }
 
     }
@@ -422,6 +588,20 @@ namespace HAWKLORRY
         public string LastDay { get { return _lastDay; } }
         public int FirstYear { get { return _firstYear; } }
         public int LastYear { get { return _lastYear; } }
+
+        public bool IsAvailableForYear(int year)
+        {
+            if (!IsAvailable) return false;
+            if (FirstYear > year || LastYear < year) return false;
+
+            DateTime firstDay_TestYear = new DateTime(year,1,1);
+            DateTime lastDay_TestYear = new DateTime(year, 12, 31);
+            DateTime firstDay = DateTime.Parse(_firstDay);
+            DateTime lastDay = DateTime.Parse(_lastDay);
+
+            return firstDay_TestYear >= firstDay && lastDay_TestYear <= lastDay;
+        }
+
         public override string ToString()
         {
             if (!IsAvailable) return _intervalType + " data not available";
@@ -519,6 +699,7 @@ namespace HAWKLORRY
                 stations.Add(new ECStationInfo(r));
             return stations;
         }
+             
 
         public ECStationInfo(DataRow oneRowInCSV)
         {
@@ -570,7 +751,7 @@ namespace HAWKLORRY
         public static List<ECStationInfo> FromEC(string htmlRequest,
             System.ComponentModel.BackgroundWorker worker = null)
         {
-            HtmlNodeCollection nodes = ECHtmlUtil.ReadAllNodes(htmlRequest, "//form[@action='/climateData/Interform.php']");
+            HtmlNodeCollection nodes = ECHtmlUtil.ReadAllNodes(htmlRequest, "//form[@action='/lib/climateData/Interform.php']");
             List<ECStationInfo> stations = new List<ECStationInfo>();
             if (nodes == null || nodes.Count == 0) return stations;
             foreach (HtmlNode node in nodes)
@@ -670,6 +851,25 @@ namespace HAWKLORRY
         public ECStationDataAvailability DailyAvailability { get { readDataAvailability(); return _dailyAvailability; } }
         public ECStationDataAvailability MonthlyAvailability { get { readDataAvailability(); return _monthlyAvailability; } }
 
+        public bool IsAvailableForYear(int year)
+        {
+            if (!IsDailyAvailable && !IsHourlyAvailable) return false;
+            bool daily = IsDailyAvailable && DailyAvailability.IsAvailableForYear(year);
+            bool hourly = IsHourlyAvailable && HourlyAvailability.IsAvailableForYear(year);
+            return daily || hourly;
+        }
+
+        public bool IsAvailableForYear(int startYear, int endYear)
+        {
+            bool available = false;
+            for (int year = startYear; year <= endYear; year++)
+            {
+                available |= IsAvailableForYear(year);
+                if (available) break;
+            }
+            return available;
+        }
+
         public override string ToString()
         {
             return string.Format("{0},{1},{2},{3}", _name, _province,_elevation,_id);
@@ -741,6 +941,40 @@ namespace HAWKLORRY
         #region Download Data
 
         #region Data Cache
+
+        #region Temperature
+
+        public List<DailyTemperature> getTemperatureForOneYear(int year)
+        {
+            List<DailyTemperature> temps = null;
+            string cacheFile = getCachFileNameTemperature(year);
+            if (File.Exists(cacheFile))
+                temps = DailyTemperature.FromCacheFile(cacheFile);
+            else
+            {
+                temps = DailyTemperature.GetTemperatureForYearHourlyFirst(ID, year);
+                using (StreamWriter writer = new StreamWriter(cacheFile))
+                {
+                    writer.WriteLine(DailyTemperature.HEADER);
+                    foreach (DailyTemperature tep in temps)
+                        writer.WriteLine(tep);
+                }
+            }
+            return temps;
+        }
+
+        private string getCachFileNameTemperature(int year)
+        {
+            string path = Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),"Temperature");
+            if(!Directory.Exists(path)) Directory.CreateDirectory(path);
+            path = Path.Combine(path, ID);
+            if(!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return Path.Combine(path, string.Format("{0}.csv",year));
+        }
+
+        #endregion
+
+
 
         private string getDataForOneYear(int year, ECDataIntervalType timeInterval, int processPercent)
         {
@@ -920,6 +1154,28 @@ namespace HAWKLORRY
 
         #endregion
 
+        /// <summary>
+        /// Save temperature data into an ascii file for later use
+        /// </summary>
+        /// <param name="startYear"></param>
+        /// <param name="endYear"></param>
+        /// <param name="destinationFolder"></param>
+        /// <returns></returns>
+        public bool saveTemperature(int startYear, int endYear, string destinationFolder)
+        {
+            int[] hourly_index = new int[] { 6 };
+            int[] daily_index = new int[] { 5, 7, 9 };
+
+            for (int year = startYear; year <= endYear; year++)
+            {
+                if (this.IsHourlyAvailable && HourlyAvailability.IsAvailableForYear(year))
+                    save2Ascii(hourly_index, year, year, destinationFolder, FormatType.SIMPLE_CSV, ECDataIntervalType.HOURLY);
+                else if(this.IsDailyAvailable)
+                    save2Ascii(daily_index, year, year, destinationFolder, FormatType.SIMPLE_CSV, ECDataIntervalType.DAILY);
+            }
+            return true;
+        }
+
         public bool save(int[] fields,
             int startYear, int endYear, string destinationFolder, FormatType format,
             ECDataIntervalType timeInterval = ECDataIntervalType.DAILY)
@@ -992,7 +1248,7 @@ namespace HAWKLORRY
                     return string.Format("{0}_{1}_{6}_{2}_{3}_{4}{5}",
                         _name.Replace(' ', '_'), _province, startYear, endYear, timeInterval, extension,ID);
                 else
-                    return string.Format("{0}_{1}_{6}_{2}_{3}{4}",
+                    return string.Format("{0}_{1}_{5}_{2}_{3}{4}",
                         _name.Replace(' ', '_'), _province, startYear, timeInterval, extension,ID);
             }
             else
@@ -1309,5 +1565,314 @@ namespace HAWKLORRY
         #endregion
     }
 
+    /// <summary>
+    /// Hourly temperature data
+    /// </summary>
+    class HourlyTemperature
+    {
+        private DateTime _time;
+        private double? _temp = null;
 
+        public DateTime Time { get { return _time; } }
+        public double? Temperature { set { _temp = value; } get { if (_temp.HasValue) return _temp.Value; else return null; } }
+        public bool HasValue { get { return _temp.HasValue; } }
+
+        private static List<HourlyTemperature> GetInitialTemperatureForMonth(int year, int month)
+        {
+            List<HourlyTemperature> temps = new List<HourlyTemperature>();
+
+            DateTime baseTime = new DateTime(year, month, 1);
+            int numberOfHours = DateTime.DaysInMonth(year, month) * 24;
+
+            for (int i = 1; i <= numberOfHours; i++)
+            {
+                temps.Add(new HourlyTemperature(baseTime.AddHours(i - 1)));
+            }
+            return temps;
+        }
+
+        public static List<HourlyTemperature> GetTemperatureForMonth(string stationID, int year, int month)
+        {
+            List<HourlyTemperature> temps = GetInitialTemperatureForMonth(year, month);
+
+            string ECHourlyCSVString = ECRequestUtil.RequestHourlyClimateData(stationID, year, month, true, true);
+            if (string.IsNullOrEmpty(ECHourlyCSVString)) return temps;
+
+            using (CachedCsvReader csv = new CachedCsvReader(new StringReader(ECHourlyCSVString), true))
+            {
+                csv.DefaultParseErrorAction = ParseErrorAction.AdvanceToNextLine;
+                csv.MissingFieldAction = MissingFieldAction.ReplaceByEmpty; //treat missing value
+
+                if (csv.FieldCount < 25) return temps;
+
+                DateTime currentTime = DateTime.Now;
+                int line = 0;
+                while (csv.ReadNextRecord())
+                {
+                    if (string.IsNullOrEmpty(csv[0]) || string.IsNullOrEmpty(csv[6])) continue;
+
+                    currentTime = DateTime.Parse(csv[0]);
+                    currentTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, currentTime.Hour, 0, 0);
+                    var currentTemp = temps.Where(temp => temp.Time.Equals(currentTime));
+                    HourlyTemperature t = currentTemp.First<HourlyTemperature>();
+
+                    t.Temperature = double.Parse(csv[6]);
+                    line++;
+                }
+            }
+
+            return temps;
+        }
+
+        public HourlyTemperature(DateTime time)
+        {
+            _time = time;
+        }
+    }
+
+    /// <summary>
+    /// Daily temperature data
+    /// </summary>
+    class DailyTemperature
+    {
+        private DateTime _day;
+        private double? _min = null;
+        private double? _max = null;
+        private double? _ave = null;
+        private bool _fromHourly = false;
+
+        public DateTime Day { get { return _day; } }
+        public double Min { set { _min = value; } }
+        public double Max { set { _max = value; } }
+        public double Ave { set { _ave = value; } }
+        public bool FromHourly { set { _fromHourly = value; } }
+        public bool HasValue { get { return _min.HasValue && _max.HasValue && _ave.HasValue; } }
+
+        private static List<DailyTemperature> GetInitialTemperatureForYear(int year)
+        {
+            List<DailyTemperature> temps = new List<DailyTemperature>();
+            int numberOfDays = 365;
+            if (DateTime.IsLeapYear(year)) numberOfDays = 366;
+            DateTime baseDay = new DateTime(year - 1, 12, 31);
+            for (int day = 1; day <= numberOfDays; day++)
+            {
+                temps.Add(new DailyTemperature(baseDay.AddDays((double)day)));
+            }
+            return temps;
+        }
+
+        public static List<DailyTemperature> GetTemperatureForYearHourlyFirst(string stationID, int year)
+        {
+            //get daily temperature first
+            List<DailyTemperature> dailyTemps = GetTemperatureForYear(stationID, year);
+
+            //see if there are some hourly data
+            for (int month = 1; month <= 12; month++)
+            {
+                List<HourlyTemperature> hourlyTemps = HourlyTemperature.GetTemperatureForMonth(stationID, year, month);
+
+                int numberOfDays = DateTime.DaysInMonth(year, month);
+                for (int day = 1; day <= numberOfDays; day++)
+                {
+                    //get all hourly temperature data in current day
+                    List<HourlyTemperature> tempsInCurrentDay =
+                        hourlyTemps.Where(temps => temps.Time.Day == day).ToList();
+
+                    //create the daily temperature from hourly temperatuer data
+                    DailyTemperature newDailyTempFromHourly = new DailyTemperature(tempsInCurrentDay);
+
+                    //replace the daily temperature with the one derived from hourly data
+                    if (newDailyTempFromHourly.HasValue)
+                    {
+                        DailyTemperature currentDailyTemp =
+                            dailyTemps.Where(temps => temps.Day.Equals(newDailyTempFromHourly.Day)).ToList()[0];
+                        int index = dailyTemps.IndexOf(currentDailyTemp);
+                        dailyTemps.RemoveAt(index);
+                        dailyTemps.Insert(index, newDailyTempFromHourly);
+                    }
+                }
+            }
+            return dailyTemps;
+        }
+
+        private static List<DailyTemperature> GetTemperatureForYear(string stationID, int year)
+        {
+            List<DailyTemperature> temps = GetInitialTemperatureForYear(year);
+
+            string ECDailyCSVString = ECRequestUtil.RequestAnnualDailyClimateData(stationID, year, true, true);
+            if (string.IsNullOrEmpty(ECDailyCSVString)) return temps;
+
+            using (CachedCsvReader csv = new CachedCsvReader(new StringReader(ECDailyCSVString), true))
+            {
+                csv.DefaultParseErrorAction = ParseErrorAction.AdvanceToNextLine;
+                csv.MissingFieldAction = MissingFieldAction.ReplaceByEmpty; //treat missing value
+
+                if (csv.FieldCount < 27) return temps;
+
+                DateTime currentDay = DateTime.Now;
+                while (csv.ReadNextRecord())
+                {
+                    if (string.IsNullOrEmpty(csv[0]) || string.IsNullOrEmpty(csv[5]) ||
+                        string.IsNullOrEmpty(csv[7]) || string.IsNullOrEmpty(csv[9])) continue;
+
+                    currentDay = DateTime.Parse(csv[0]);
+                    var currentTemp = temps.Where(temp => temp.Day.Equals(currentDay));
+                    DailyTemperature t = currentTemp.First<DailyTemperature>();
+
+                    t.Min = double.Parse(csv[5]);
+                    t.Max = double.Parse(csv[7]);
+                    t.Ave = double.Parse(csv[9]);
+                }
+            }
+
+            return temps;
+        }
+
+        /// <summary>
+        /// Get daily temperature from the cache file for analysis
+        /// </summary>
+        /// <param name="cacheFile"></param>
+        /// <returns></returns>
+        public static List<DailyTemperature> FromCacheFile(string cacheFile)
+        {
+            List<DailyTemperature> temps = new List<DailyTemperature>();
+            if (!File.Exists(cacheFile)) return temps;
+            using (StreamReader reader = new StreamReader(cacheFile))
+            {
+                using (CachedCsvReader csv = new CachedCsvReader(new StringReader(reader.ReadToEnd()), true))
+                {
+                    while (csv.ReadNextRecord())
+                    {
+                        if (string.IsNullOrEmpty(csv[1]) || string.IsNullOrEmpty(csv[2]) ||
+                            string.IsNullOrEmpty(csv[3])) continue;
+
+                        DailyTemperature t = new DailyTemperature(DateTime.Parse(csv[0]));
+                        t.Min = double.Parse(csv[1]);
+                        t.Max = double.Parse(csv[2]);
+                        t.Ave = double.Parse(csv[3]);
+                        t.FromHourly = bool.Parse(csv[4]);
+                        temps.Add(t);
+                    }
+                }
+            }
+            return temps;
+
+        }
+
+        public DailyTemperature(DateTime day)
+        {
+            _day = day;
+        }
+
+        public DailyTemperature(List<HourlyTemperature> hourlyTemp)
+        {
+            if (hourlyTemp.Count != 24)
+                throw new Exception("One day should have 24 hours!");
+
+            _day = hourlyTemp[0].Time.Date;
+            _min = hourlyTemp.Min(temp => temp.Temperature);
+            _max = hourlyTemp.Max(temp => temp.Temperature);
+            _ave = hourlyTemp.Average(temp => temp.Temperature);
+            _fromHourly = true;
+        }
+
+        public override string ToString()
+        {
+            if(HasValue)
+                return string.Format("{0:yyyy-MM-dd},{1},{2},{3},{4}", _day, _min,_max,_ave,_fromHourly);
+            else
+                return string.Format("{0:yyyy-MM-dd},,,,false", _day);
+        }
+
+        public static string HEADER = "day,min,max,ave,hourly";
+    }
+
+    /// <summary>
+    /// A project to deal with EC climate data. It may have a shapefile boundary and has a group of shapefiles
+    /// </summary>
+    class ECClimateProject
+    {
+        private string _shapefileName = string.Empty;
+        private List<ECStationInfo> _stations = null;
+
+        public ECClimateProject(string shapefileName)
+        {
+            _shapefileName = shapefileName;
+        }
+
+        public List<ECStationInfo> Stations
+        {
+            get
+            {
+                if (_stations == null) readECStationsInBoundary();
+                return _stations;
+            }
+        }
+
+        /// <summary>
+        /// A new shapefile will be generated for each given start and end year. They may have different stations available
+        /// </summary>
+        /// <param name="startYear"></param>
+        /// <param name="endYear"></param>
+        /// <returns></returns>
+        //public string getStationsShapefile(int startYear, int endYear)
+        //{
+        //    //default file path, in the exe folder
+        //    string stationShapefile =
+        //        Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Shapefile");
+        //    if (!Directory.Exists(stationShapefile)) Directory.CreateDirectory(stationShapefile);
+        //    stationShapefile = Path.Combine(stationShapefile,
+        //        string.Format("huzelnut_{0}_{1}.shp", startYear, endYear));
+
+        //    if (!File.Exists(stationShapefile))
+        //    {
+        //        //copy the shapefile for all stations
+        //        string allStationShapefile = EC.GetAllStationShapeFile();
+        //        File.Copy(allStationShapefile, stationShapefile);
+
+        //        //only keep stations in boundary
+        //        Shapefile sf = Shapefile.OpenFile(stationShapefile);
+
+
+        //        //remove some stations based on data availability
+        //        foreach (ECStationInfo info in Stations)
+        //        {
+        //            if (!info.IsAvailableForYear(startYear, endYear)) continue;
+
+        //            //add this station to the shapefile
+
+        //        }
+        //    }
+        //}
+
+        public string StationListCacheName { get { return "stationsInBoundary.csv"; } }
+
+        private void readECStationsInBoundary()
+        {
+            if (_stations != null) return;
+
+            //load from save stations
+            string path = System.IO.Path.GetTempPath();
+            path += @"ECReader\";
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            string file = path + StationListCacheName;
+
+            if (!File.Exists(file))
+            {
+                if (!string.IsNullOrEmpty(_shapefileName))
+                {
+                    _stations = EC.SearchByShapefile(_shapefileName);
+                    EC.SaveStations(file, _stations);
+                }
+                _stations = new List<ECStationInfo>();
+            }
+
+            _stations = EC.ReadStations(file);
+        }
+    }
+
+    class HuzelnutSuitabilityProject : ECClimateProject
+    {
+        public HuzelnutSuitabilityProject(string shapefileName) : base(shapefileName) { }
+    }
 }
