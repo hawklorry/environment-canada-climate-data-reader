@@ -37,18 +37,6 @@
     <ApplicationIcon>Resources\Icon1.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotSpatial.Data, Version=1.6.0.0, Culture=neutral, PublicKeyToken=c29dbf30e059ca9d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="DotSpatial.Projections, Version=1.6.0.0, Culture=neutral, PublicKeyToken=272632bddd08a38b, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Projections.dll</HintPath>
-    </Reference>
-    <Reference Include="DotSpatial.Topology, Version=1.6.0.0, Culture=neutral, PublicKeyToken=a66b5e9434ca3671, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Topology.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -97,6 +85,7 @@
     <Compile Include="Australia\FrmAustralia.Designer.cs">
       <DependentUpon>FrmAustralia.cs</DependentUpon>
     </Compile>
+    <Compile Include="HuzelnutSuitability\DailyTemperatureStatistics.cs" />
     <Compile Include="HuzelnutSuitability\ECClimateProject.cs" />
     <Compile Include="ECDataIntervalType.cs" />
     <Compile Include="ECHtmlUtil.cs" />
@@ -257,7 +246,20 @@
     <None Include="Resources\EC_Stations.zip" />
     <None Include="Resources\Icon1.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\dotspatial\Trunk\DotSpatial.Data\DotSpatial.Data.csproj">
+      <Project>{c1018695-3401-47a9-b195-abd3a20c2489}</Project>
+      <Name>DotSpatial.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\dotspatial\Trunk\DotSpatial.Projections\DotSpatial.Projections.csproj">
+      <Project>{d286df06-21fa-40be-b384-6aca509ac98c}</Project>
+      <Name>DotSpatial.Projections</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\dotspatial\Trunk\DotSpatial.Topology\DotSpatial.Topology.csproj">
+      <Project>{a8079861-c636-4ece-99c1-ad313276787b}</Project>
+      <Name>DotSpatial.Topology</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -17,11 +17,11 @@ namespace HAWKLORRY.HuzelnutSuitability
         private double? _max = null;
         private double? _ave = null;
         private bool _fromHourly = false;
-
+        
         public DateTime Day { get { return _day; } }
-        public double Min { set { _min = value; } }
-        public double Max { set { _max = value; } }
-        public double Ave { set { _ave = value; } }
+        public double Min { set { _min = value; } get { return _min.HasValue ? _min.Value : -99.0; } }
+        public double Max { set { _max = value; } get { return _max.HasValue ? _max.Value : -99.0; } }
+        public double Ave { set { _ave = value; } get { return _ave.HasValue ? _ave.Value : -99.0; } }
         public bool FromHourly { set { _fromHourly = value; } }
         public bool HasValue { get { return _min.HasValue && _max.HasValue && _ave.HasValue; } }
 

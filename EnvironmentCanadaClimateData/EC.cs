@@ -238,38 +238,35 @@ namespace HAWKLORRY
                 //return value
                 List<ECStationInfo> selectedStations = new List<ECStationInfo>();
 
-                //shapefile for all stations in boundary
-                //the existing file will be overwrite                
-                MultiPointShapefile selectedStationsShapefile = null;
-                if(selectedStationsShapefilePath != null)
-                {
-                    selectedStationsShapefile = new MultiPointShapefile();
-                    selectedStationsShapefile.Projection = allsf.Projection;                    
-                }
-
                 //try to find all the climate stations located in boundary
-                List<int> indics = new List<int>();
-                //List<IFeature> stations = allsf.Select(sf.Extent);
-                foreach (IFeature station in allsf.Features)
+                List<IFeature> stations = allsf.Select(sf.Extent);
+                List<IFeature> stationsInBoundary = new List<IFeature>();
+                foreach (IFeature station in stations)
                 {
                     foreach (IFeature boundary in sf.Features)
                     {
                         if ((boundary.BasicGeometry as IPolygon).Contains(station.BasicGeometry as IGeometry))
                         {
                             selectedStations.Add(new ECStationInfo(station));
-                            indics.Add(allsf.Features.IndexOf(station));
-                            //selectedStationsShapefile.Features.Add(station);
+                            stationsInBoundary.Add(station);
                             break;
                         }
                     }                    
                 }
 
-                //
-                selectedStationsShapefile.CopyFeatures(allsf.CopySubset(indics), true);
+                //save to shapefile if necessary
+                //shapefile for all stations in boundary
+                //the existing file will be overwrite                
+                if (selectedStationsShapefilePath != null)
+                {
+                    //MultiPointShapefile selectedStationsShapefile = new MultiPointShapefile();
+                    //selectedStationsShapefile.Projection = allsf.Projection;
+                    //selectedStationsShapefile.CopyFeatures(new FeatureSet(stationsInBoundary), true);
 
-                //save stations in boundary to the shapefile
-                if (selectedStationsShapefilePath != null && selectedStationsShapefile != null)
-                    selectedStationsShapefile.SaveAs(selectedStationsShapefilePath(), true);
+                    FeatureSet newShapefile = new FeatureSet(stationsInBoundary);
+                    newShapefile.Projection = allsf.Projection;
+                    newShapefile.SaveAs(selectedStationsShapefilePath(), true);
+                }
 
                 return selectedStations;
             }

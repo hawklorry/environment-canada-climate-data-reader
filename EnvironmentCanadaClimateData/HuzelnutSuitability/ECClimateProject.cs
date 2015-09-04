@@ -23,7 +23,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// The name of the shapefile used to save all stations in the boundary. 
         /// </summary>
         /// <remarks>If multiple project will be supported, each project should have their own name.</remarks>
-        public string StationListCacheName { get { return "stationsInBoundary.shp"; } }
+        private string StationListCacheName { get { return "stationsInBoundary.shp"; } }
 
         /// <summary>
         /// All stations in given boundary read from given shapefile
@@ -31,7 +31,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// <remarks>
         /// All stations in boundary will be writen to a shapefile in temp folder with the name specified by StationListCacheName. 
         /// Existing shapefile will be re-write.</remarks>
-        public List<ECStationInfo> Stations
+        public List<ECStationInfo> StationsInBoundary
         {
             get
             {
@@ -84,6 +84,25 @@ namespace HAWKLORRY.HuzelnutSuitability
             }
         }
 
+        /// <summary>
+        /// Cache all stations in a given year range
+        /// </summary>
+        private Dictionary<string, List<ECStationInfo>> _stationsAvailableInYearRange = new Dictionary<string, List<ECStationInfo>>();
+
+        /// <summary>
+        /// Get all station info in given year range 
+        /// </summary>
+        /// <param name="startYear"></param>
+        /// <param name="endYear"></param>
+        /// <returns></returns>
+        public List<ECStationInfo> getStationsAvailableInYearRange(int startYear, int endYear)
+        {
+            string key = string.Format("{0}_{1}", startYear, endYear);
+
+            if (!_stationsAvailableInYearRange.ContainsKey(key))
+                _stationsAvailableInYearRange.Add(key, ECStationInfo.FromShapefile(getStationShapefile(startYear,endYear)));
+            return _stationsAvailableInYearRange[key];
+        }
 
         /// <summary>
         /// A new shapefile will be generated for each given start and end year. They may have different stations available. 
@@ -96,32 +115,33 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// first before this function could be used.
         /// The criteria fields are also added.
         /// </remarks>
-        public string getStationsShapefile(int startYear, int endYear)
-        {            
+        private string getStationShapefile(int startYear, int endYear)
+        {
             string stationShapefile = Path.Combine(ShapefileFolder,
                 string.Format("huzelnut_{0}_{1}.shp", startYear, endYear));
 
             if (!File.Exists(stationShapefile))
             {
-                if (Stations.Count == 0)
+                if (StationsInBoundary.Count == 0)
                     throw new System.Exception("There is no stations in given boundary!");
 
-                //create the new shapefile to hold all the stations
-                MultiPointShapefile newShapefile = new MultiPointShapefile();
+                //stations has data in given year range
+                List<IFeature> stationsAvailable = new List<IFeature>();
+
+                //remove some stations based on data availability
+                foreach (ECStationInfo info in StationsInBoundary)
+                {
+                    if (!info.IsAvailableForYear(startYear, endYear)) continue;
+                    stationsAvailable.Add(info.Feature);
+                }
+
+                //create the shapefile
+                FeatureSet newShapefile = new FeatureSet(stationsAvailable);
 
                 //get the projection
                 Shapefile ref_sf = Shapefile.OpenFile(getShapefilePathInBoundary());
                 newShapefile.Projection = ref_sf.Projection;
                 ref_sf.Close();
-
-                //remove some stations based on data availability
-                foreach (ECStationInfo info in Stations)
-                {
-                    if (!info.IsAvailableForYear(startYear, endYear)) continue;
-
-                    //add this station to the shapefile
-                    newShapefile.Features.Add(info.Feature);
-                }
 
                 //save to file
                 newShapefile.SaveAs(stationShapefile, true);
@@ -129,14 +149,13 @@ namespace HAWKLORRY.HuzelnutSuitability
                 //add criteria fields
                 AddCriteriaFields(stationShapefile, startYear, endYear);
             }
-
             return stationShapefile;
         }
 
         #region Criteria
 
-        private static string[] CRITERIA_FIELD_NAME = new string[] { "Avg", "Forstf", "Stemp", "Ltemp" };
-        private static string FROST_FIELD_NAME = "Sf_W";
+        private static string[] CRITERIA_FIELD_NAME = new string[] { "Avg", "Forst", "Stemp", "Ltemp" };
+        private static string FROST_FIELD_NAME = "Sf";
 
         /// <summary>
         /// Add all criterias to the shapefile
@@ -152,6 +171,7 @@ namespace HAWKLORRY.HuzelnutSuitability
                 DataTable dt = sf.DataTable;
 
                 //get all the names
+                //don't exceed the max length 10
                 StringCollection names = new StringCollection();
                 foreach (string criteria in CRITERIA_FIELD_NAME) names.Add(criteria);
                 for (int i = 0; i <= 16; i++) names.Add(string.Format("{0}{1}", FROST_FIELD_NAME, i));
@@ -170,6 +190,9 @@ namespace HAWKLORRY.HuzelnutSuitability
                             dt.Columns.Add(fieldName, typeof(int));     //int
                     }
                 }
+
+                //save the change
+                sf.Save();
             }
             finally { sf.Close(); }
         }

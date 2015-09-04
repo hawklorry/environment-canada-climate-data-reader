@@ -15,7 +15,7 @@ namespace HAWKLORRY
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new HAWKLORRY.FrmHuzelnutSuitability());
+            Application.Run(new HAWKLORRY.HuzelnutSuitability.FrmHuzelnutSuitability());
         }
     }
 }
