@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using System.IO;
 using DotSpatial.Data;
 
-namespace HAWKLORRY
+namespace HAWKLORRY.HuzelnutSuitability
 {
     public partial class FrmHuzelnutSuitability : Form
     {
@@ -21,8 +21,9 @@ namespace HAWKLORRY
         private void button1_Click(object sender, EventArgs e)
         {
             HuzelnutSuitabilityProject project = new HuzelnutSuitabilityProject(
-                @"E:\GitHub\environment-canada-climate-data-reader\Suitability\County_Southern_ONT.shp");
-            List<ECStationInfo> stations = project.Stations;
+                @"C:\dev\hezel_suitability\doc\gis\County_Southern_ONT.shp");
+
+            string finalShapefile = project.getStationsShapefile(2000, 2014);
 
             //for(int i=0;i<Stations.Count;i++)
             //{                

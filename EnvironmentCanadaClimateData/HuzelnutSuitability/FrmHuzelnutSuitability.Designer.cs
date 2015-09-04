@@ -1,4 +1,4 @@
-﻿namespace HAWKLORRY
+﻿namespace HAWKLORRY.HuzelnutSuitability
 {
     partial class FrmHuzelnutSuitability
     {

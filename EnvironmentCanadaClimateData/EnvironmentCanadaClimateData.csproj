@@ -37,14 +37,17 @@
     <ApplicationIcon>Resources\Icon1.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotSpatial.Data">
-      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Data.dll</HintPath>
+    <Reference Include="DotSpatial.Data, Version=1.6.0.0, Culture=neutral, PublicKeyToken=c29dbf30e059ca9d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Data.dll</HintPath>
     </Reference>
-    <Reference Include="DotSpatial.Projections">
-      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Projections.dll</HintPath>
+    <Reference Include="DotSpatial.Projections, Version=1.6.0.0, Culture=neutral, PublicKeyToken=272632bddd08a38b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Projections.dll</HintPath>
     </Reference>
-    <Reference Include="DotSpatial.Topology">
-      <HintPath>..\DotSpatial.Core.1.6\DotSpatial.Topology.dll</HintPath>
+    <Reference Include="DotSpatial.Topology, Version=1.6.0.0, Culture=neutral, PublicKeyToken=a66b5e9434ca3671, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DotSpatial_Core.1.7\DotSpatial.Topology.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -73,6 +76,7 @@
     <Compile Include="csv\ParseErrorAction.cs" />
     <Compile Include="csv\Resources\ExceptionMessage.Designer.cs" />
     <Compile Include="csv\ValueTrimmingOptions.cs" />
+    <Compile Include="HuzelnutSuitability\DailyTemperature.cs" />
     <Compile Include="DotNetZip\CRC32.cs" />
     <Compile Include="DotNetZip\Zlib\Deflate.cs" />
     <Compile Include="DotNetZip\Zlib\DeflateStream.cs" />
@@ -93,6 +97,13 @@
     <Compile Include="Australia\FrmAustralia.Designer.cs">
       <DependentUpon>FrmAustralia.cs</DependentUpon>
     </Compile>
+    <Compile Include="HuzelnutSuitability\ECClimateProject.cs" />
+    <Compile Include="ECDataIntervalType.cs" />
+    <Compile Include="ECHtmlUtil.cs" />
+    <Compile Include="ECRequestUtil.cs" />
+    <Compile Include="ECSearchType.cs" />
+    <Compile Include="ECStationDataAvailability.cs" />
+    <Compile Include="ECStationInfo.cs" />
     <Compile Include="FastDBF\DbfColumn.cs" />
     <Compile Include="FastDBF\DbfDataTruncateException.cs" />
     <Compile Include="FastDBF\DbfFile.cs" />
@@ -117,10 +128,10 @@
     <Compile Include="FrmHelp.Designer.cs">
       <DependentUpon>FrmHelp.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrmHuzelnutSuitability.cs">
+    <Compile Include="HuzelnutSuitability\FrmHuzelnutSuitability.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmHuzelnutSuitability.Designer.cs">
+    <Compile Include="HuzelnutSuitability\FrmHuzelnutSuitability.Designer.cs">
       <DependentUpon>FrmHuzelnutSuitability.cs</DependentUpon>
     </Compile>
     <Compile Include="FrmStationInformation.cs">
@@ -129,6 +140,7 @@
     <Compile Include="FrmStationInformation.Designer.cs">
       <DependentUpon>FrmStationInformation.cs</DependentUpon>
     </Compile>
+    <Compile Include="HuzelnutSuitability\HourlyTemperature.cs" />
     <Compile Include="HtmlAgilityPack\crc32.cs" />
     <Compile Include="HtmlAgilityPack\EncodingFoundException.cs" />
     <Compile Include="HtmlAgilityPack\HtmlAttribute.cs" />
@@ -165,6 +177,7 @@
     <Compile Include="HtmlAgilityPack\Trace.cs" />
     <Compile Include="HtmlAgilityPack\Trace.FullFramework.cs" />
     <Compile Include="HtmlAgilityPack\Utilities.cs" />
+    <Compile Include="HuzelnutSuitability\HuzelnutSuitabilityProject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Station.cs" />
@@ -213,7 +226,7 @@
     <EmbeddedResource Include="FrmHelp.resx">
       <DependentUpon>FrmHelp.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmHuzelnutSuitability.resx">
+    <EmbeddedResource Include="HuzelnutSuitability\FrmHuzelnutSuitability.resx">
       <DependentUpon>FrmHuzelnutSuitability.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmStationInformation.resx">
