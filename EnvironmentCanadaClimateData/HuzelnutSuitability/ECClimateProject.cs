@@ -76,11 +76,68 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             get
             {
-                //default file path, in the exe folder
-                string folder =
-                    Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Shapefile");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                return folder;
+                return getSpecificFolder("Shapefile");
+            }
+        }
+
+        private string FinalTableFolder
+        {
+            get
+            {
+                return getSpecificFolder("FinalTable");
+            }
+        }
+
+        private string getSpecificFolder(string folderName)
+        {
+            //default file path, in the exe folder
+            string folder =
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), folderName);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            return folder;
+        }
+
+        private string getFinalTableFileName(HuzelnutSuitabilityCriteriaType type)
+        {
+            return Path.Combine(FinalTableFolder, string.Format("{0}.csv", type));
+        }
+
+        private string getFinalTableHeader(int startYear, int endYear, HuzelnutSuitabilityCriteriaType type)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("station ID");
+            for(int year = startYear;year <= endYear;year ++)
+            {
+                sb.Append(",");
+                sb.Append(string.Format("{0}_{1}",type,year));                   
+            }
+            if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)
+            {
+                sb.Append(",");
+                sb.Append(string.Format("{0}_{1}", type, "All"));
+            }
+            return sb.ToString();
+        }
+
+        public void generateTable(int startYear, int endYear)
+        {
+            for (int i = (int)(HuzelnutSuitabilityCriteriaType.Sf_W1); i <= (int)(HuzelnutSuitabilityCriteriaType.Ltemp); i++)
+                generateTable(startYear, endYear, (HuzelnutSuitabilityCriteriaType)i);
+        }
+
+        public void generateTable(int startYear, int endYear, HuzelnutSuitabilityCriteriaType type)
+        {
+            using (StreamWriter writer = new StreamWriter(getFinalTableFileName(type)))
+            {
+                writer.WriteLine(getFinalTableHeader(startYear, endYear, type));
+                List<ECStationInfo> stations = getStationsAvailableInYearRange(startYear, endYear);
+                for (int i = 0; i < stations.Count; i++)
+                {
+                    DailyTemperatureStatisticsMultipleYear statistics =
+                        new DailyTemperatureStatisticsMultipleYear(startYear, endYear, stations[i]);
+
+                    writer.WriteLine(statistics.getCriteriaString(type));
+                }
             }
         }
 

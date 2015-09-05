@@ -5,12 +5,12 @@ using System.Text;
 
 namespace HAWKLORRY.HuzelnutSuitability
 {
-    class DailyTemperatureStatistics
+    class DailyTemperatureStatisticsOneYear
     {
         private List<DailyTemperature> _temps = null;
         private int _year = 2000;
 
-        public DailyTemperatureStatistics(int year, List<DailyTemperature> temps)
+        public DailyTemperatureStatisticsOneYear(int year, List<DailyTemperature> temps)
         {
             _temps = temps;
             _year = year;
@@ -20,6 +20,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             get 
             {
+                if (_temps.Count == 0) return double.MinValue;
                 return _temps.Where(tmp=>tmp.HasValue).Average(tmp => tmp.Ave);
             }
         }
@@ -45,11 +46,19 @@ namespace HAWKLORRY.HuzelnutSuitability
             return _temps.Where(tmp => tmp.HasValue && tmp.Day >= firstDay && tmp.Day <= lastDay).Count(tmp => tmp.Ave < -2.0);
         }
 
-        public int NumberofLowTemp
+        public int NumberofLowTemp40
         {
             get
             {
                 return _temps.Where(tmp => tmp.HasValue).Count(tmp => tmp.Min < 40);
+            }
+        }
+
+        public int NumberofLowTemp28
+        {
+            get
+            {
+                return _temps.Where(tmp => tmp.HasValue).Count(tmp => tmp.Min < 28);
             }
         }
     }

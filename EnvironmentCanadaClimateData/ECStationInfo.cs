@@ -319,6 +319,58 @@ namespace HAWKLORRY
 
         #region Temperature
 
+        public double getCriteria(int year, HuzelnutSuitabilityCriteriaType type)
+        {
+            if (!IsAvailableForYear(year)) return double.MinValue;
+
+            if (type <= HuzelnutSuitabilityCriteriaType.Sf_W16)
+                return getCriteriaFrostDays(year, (int)type);
+
+            switch(type)
+            {
+                case HuzelnutSuitabilityCriteriaType.Avg:
+                    return getCriteriaAverageTemperature(year);
+                case HuzelnutSuitabilityCriteriaType.Forstf:
+                    return getCriteriaFrostFreeDays(year);
+                case HuzelnutSuitabilityCriteriaType.Ltemp:
+                    return getCriteriaLowTemperature28Days(year);
+                case HuzelnutSuitabilityCriteriaType.Stemp:
+                    return getCriteriaLowTemperature40Days(year);
+                default:
+                    throw new Exception("Unknow Type!");
+            }
+        }
+
+        public double getCriteriaAverageTemperature(int year)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.Average;
+        }
+
+        public int getCriteriaFrostFreeDays(int year)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.NumDayofFrostFree;
+        }
+
+        public int getCriteriaFrostDays(int year, int week)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.NumberofFrostInWeek(week);
+        }
+
+        public int getCriteriaLowTemperature40Days(int year)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.NumberofLowTemp40;
+        }
+
+        public int getCriteriaLowTemperature28Days(int year)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.NumberofLowTemp40;
+        }
+
         public List<DailyTemperature> getTemperatureForOneYear(int year)
         {
             List<DailyTemperature> temps = null;

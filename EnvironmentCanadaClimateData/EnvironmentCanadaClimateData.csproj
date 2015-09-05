@@ -86,6 +86,7 @@
       <DependentUpon>FrmAustralia.cs</DependentUpon>
     </Compile>
     <Compile Include="HuzelnutSuitability\DailyTemperatureStatistics.cs" />
+    <Compile Include="HuzelnutSuitability\DailyTemperatureStatisticsMultipleYear.cs" />
     <Compile Include="HuzelnutSuitability\ECClimateProject.cs" />
     <Compile Include="ECDataIntervalType.cs" />
     <Compile Include="ECHtmlUtil.cs" />
@@ -166,6 +167,8 @@
     <Compile Include="HtmlAgilityPack\Trace.cs" />
     <Compile Include="HtmlAgilityPack\Trace.FullFramework.cs" />
     <Compile Include="HtmlAgilityPack\Utilities.cs" />
+    <Compile Include="HuzelnutSuitability\HuzelnutSuitabilityCriteria.cs" />
+    <Compile Include="HuzelnutSuitability\HuzelnutSuitabilityCriteriaType.cs" />
     <Compile Include="HuzelnutSuitability\HuzelnutSuitabilityProject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

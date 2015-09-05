@@ -39,7 +39,7 @@ namespace HAWKLORRY
         private static string sendRequest(string requestURL)
         {
             HttpWebRequest r = WebRequest.Create(requestURL) as HttpWebRequest;
-            r.Method = "GET";
+            r.Method = "GET";            
             using (HttpWebResponse response = r.GetResponse() as HttpWebResponse)
             {
                 using (Stream stream = response.GetResponseStream())
