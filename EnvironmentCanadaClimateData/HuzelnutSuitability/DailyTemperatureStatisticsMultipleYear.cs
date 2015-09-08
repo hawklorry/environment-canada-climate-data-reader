@@ -32,14 +32,19 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             List<double> criteria = new List<double>();
             StringBuilder sb = new StringBuilder();
+            bool hasData = false;   //if the station has data in given year range
             sb.Append(_station.ID);
+            
             for (int year = _startYear; year <= _endYear; year++)
             {
                 double criteria_oneyear = _station.getCriteria(year, type);
                 criteria.Add(criteria_oneyear);
                 sb.Append(",");
                 sb.Append(criteria_oneyear.Equals(double.MinValue) ? "" : criteria_oneyear.ToString());
+                if (!hasData) hasData = !criteria_oneyear.Equals(double.MinValue);
             }
+
+            if (!hasData) return string.Empty;
 
             //get the standard
             if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)

@@ -136,7 +136,12 @@ namespace HAWKLORRY.HuzelnutSuitability
                     DailyTemperatureStatisticsMultipleYear statistics =
                         new DailyTemperatureStatisticsMultipleYear(startYear, endYear, stations[i]);
 
-                    writer.WriteLine(statistics.getCriteriaString(type));
+                    //get the criteria string for all years
+                    string criteria = statistics.getCriteriaString(type);
+
+                    //only write line when station has temperature data
+                    if(!string.IsNullOrEmpty(criteria))
+                        writer.WriteLine(criteria);
                 }
             }
         }
