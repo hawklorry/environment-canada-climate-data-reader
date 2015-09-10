@@ -336,9 +336,17 @@ namespace HAWKLORRY
                     return getCriteriaLowTemperature28Days(year);
                 case HuzelnutSuitabilityCriteriaType.Stemp:
                     return getCriteriaLowTemperature40Days(year);
+                case HuzelnutSuitabilityCriteriaType.Lowest:
+                    return getCriteriaLowestMinTemperature(year);
                 default:
                     throw new Exception("Unknow Type!");
             }
+        }
+
+        public double getCriteriaLowestMinTemperature(int year)
+        {
+            DailyTemperatureStatisticsOneYear statics = new DailyTemperatureStatisticsOneYear(year, getTemperatureForOneYear(year));
+            return statics.LowestMin;
         }
 
         public double getCriteriaAverageTemperature(int year)

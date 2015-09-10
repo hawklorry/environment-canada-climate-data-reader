@@ -116,12 +116,17 @@ namespace HAWKLORRY.HuzelnutSuitability
                 sb.Append(",");
                 sb.Append(string.Format("{0}_{1}", type, "All"));
             }
+            if(type == HuzelnutSuitabilityCriteriaType.Avg)
+            {
+                sb.Append(",");
+                sb.Append("Num>16.7"); //number of year with ave temp > 16.7
+            }
             return sb.ToString();
         }
 
         public void generateTable(int startYear, int endYear)
         {
-            for (int i = (int)(HuzelnutSuitabilityCriteriaType.Sf_W1); i <= (int)(HuzelnutSuitabilityCriteriaType.Ltemp); i++)
+            for (int i = (int)(HuzelnutSuitabilityCriteriaType.Sf_W1); i <= (int)(HuzelnutSuitabilityCriteriaType.Lowest); i++)
                 generateTable(startYear, endYear, (HuzelnutSuitabilityCriteriaType)i);
         }
 

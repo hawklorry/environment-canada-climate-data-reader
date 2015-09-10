@@ -17,6 +17,18 @@ namespace HAWKLORRY.HuzelnutSuitability
         }
 
         /// <summary>
+        /// Lowest min temperature
+        /// </summary>
+        public double LowestMin
+        {
+            get
+            {
+                if (_temps.Count == 0) return double.MinValue;
+                return _temps.Min(tmp => tmp.Min);
+            }
+        }
+
+        /// <summary>
         /// The average temp from May 1st to September 30
         /// </summary>
         public double Average
@@ -42,9 +54,9 @@ namespace HAWKLORRY.HuzelnutSuitability
                 foreach(DailyTemperature tmp in _temps)
                 {
                     if (!tmp.HasValue) continue;
-                    if (tmp.Ave > -2.0) days++;
-                    if (tmp.Ave < -2.0 && tmp.Day.Month <= 7) days = 0;  //use July to separate the spring and fall
-                    if (tmp.Ave < -2.0 && tmp.Day.Month > 7) break;     //already going to the fall
+                    if (tmp.Min > -2.0) days++;
+                    if (tmp.Min < -2.0 && tmp.Day.Month <= 7) days = 0;  //use July to separate the spring and fall
+                    if (tmp.Min < -2.0 && tmp.Day.Month > 7) break;     //already going to the fall
                 }
                 return days;
             }

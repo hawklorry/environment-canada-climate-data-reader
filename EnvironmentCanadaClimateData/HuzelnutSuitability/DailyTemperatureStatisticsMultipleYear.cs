@@ -46,19 +46,29 @@ namespace HAWKLORRY.HuzelnutSuitability
 
             if (!hasData) return string.Empty;
 
-            //get the standard
-            if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)
+            //get the standard        
+            else if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)
             {
                 sb.Append(",");
 
                 List<double> newList = criteria.Where(item => !item.Equals(double.MinValue)).ToList();
                 if (newList.Count == 0)
                     sb.Append("");
+                else if (type == HuzelnutSuitabilityCriteriaType.Lowest)
+                    sb.Append(newList.Min());
                 else if (newList.Count() == newList.Count(item => item > getCriteriaStandard(type)))
                     sb.Append(1);
                 else
                     sb.Append(0);
+
+                //add number of years with ave temp > 16.7
+                if (type == HuzelnutSuitabilityCriteriaType.Avg)
+                {
+                    sb.Append(",");
+                    sb.Append(newList.Count(item => item > getCriteriaStandard(type)));
+                }
             }
+
             return sb.ToString();
         }         
     }
