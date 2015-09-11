@@ -52,14 +52,28 @@ namespace HAWKLORRY.HuzelnutSuitability
                 sb.Append(",");
 
                 List<double> newList = criteria.Where(item => !item.Equals(double.MinValue)).ToList();
-                if (newList.Count == 0)
+                if (newList.Count == 0)                                     //all empty
                     sb.Append("");
-                else if (type == HuzelnutSuitabilityCriteriaType.Lowest)
+                else if (type == HuzelnutSuitabilityCriteriaType.Lowest)    //lowest min
                     sb.Append(newList.Min());
-                else if (newList.Count() == newList.Count(item => item > getCriteriaStandard(type)))
-                    sb.Append(1);
-                else
-                    sb.Append(0);
+                else if (type == HuzelnutSuitabilityCriteriaType.Forstf || 
+                        type == HuzelnutSuitabilityCriteriaType.Avg)
+                {
+                    //all year must meet the standard
+                    if (newList.Count() == newList.Count(item => item > getCriteriaStandard(type)))
+                        sb.Append(1);
+                    else
+                        sb.Append(0);
+                }
+                else if (type == HuzelnutSuitabilityCriteriaType.Stemp||
+                        type == HuzelnutSuitabilityCriteriaType.Ltemp)
+                {
+                    //only require one year to meet the standard
+                    if (newList.Count(item => item > getCriteriaStandard(type)) > 0)
+                        sb.Append(1);
+                    else
+                        sb.Append(0);
+                }
 
                 //add number of years with ave temp > 16.7
                 if (type == HuzelnutSuitabilityCriteriaType.Avg)

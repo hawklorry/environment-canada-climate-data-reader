@@ -51,7 +51,7 @@ namespace HAWKLORRY.HuzelnutSuitability
                 int line = 0;
                 while (csv.ReadNextRecord())
                 {
-                    if (string.IsNullOrEmpty(csv[0]) || string.IsNullOrEmpty(csv[6])) continue;
+                    if (string.IsNullOrEmpty(csv[0]) || string.IsNullOrEmpty(csv[6])) continue; //no data
 
                     currentTime = DateTime.Parse(csv[0]);
                     currentTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, currentTime.Hour, 0, 0);

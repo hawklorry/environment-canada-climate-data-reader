@@ -147,6 +147,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             if (hourlyTemp.Count != 24)
                 throw new Exception("One day should have 24 hours!");
+            if (hourlyTemp.Count(temp => temp.HasValue) == 0) return; //no valid data today
 
             _day = hourlyTemp[0].Time.Date;
             _min = hourlyTemp.Min(temp => temp.Temperature);
