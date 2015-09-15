@@ -47,7 +47,7 @@ namespace HAWKLORRY.HuzelnutSuitability
             if (!hasData) return string.Empty;
 
             //get the standard        
-            else if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)
+            else if(type > HuzelnutSuitabilityCriteriaType.Sf_W16 && type != HuzelnutSuitabilityCriteriaType.Num)
             {
                 sb.Append(",");
 

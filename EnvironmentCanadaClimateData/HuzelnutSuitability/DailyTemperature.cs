@@ -93,6 +93,11 @@ namespace HAWKLORRY.HuzelnutSuitability
                         string.IsNullOrEmpty(csv[7]) || string.IsNullOrEmpty(csv[9]))
                         continue;
 
+                    //ignore 99 and -99
+                    //some stations has data like this, like 4905 daily 12/27/2013 max temp = -99
+                    if (csv[5].Contains("99") || csv[7].Contains("99") || csv[9].Contains("99"))
+                        continue;
+
                     currentDay = DateTime.Parse(csv[0]);
                     var currentTemp = temps.Where(temp => temp.Day.Equals(currentDay));
                     DailyTemperature t = currentTemp.First<DailyTemperature>();
@@ -123,6 +128,11 @@ namespace HAWKLORRY.HuzelnutSuitability
                     {
                         if (string.IsNullOrEmpty(csv[1]) || string.IsNullOrEmpty(csv[2]) ||
                             string.IsNullOrEmpty(csv[3]))
+                            continue;
+
+                        //ignore 99 and -99
+                        //some stations has data like this, like 4905 daily 12/27/2013 max temp = -99
+                        if (csv[1].Contains("99") || csv[2].Contains("99") || csv[3].Contains("99"))
                             continue;
 
                         DailyTemperature t = new DailyTemperature(DateTime.Parse(csv[0]));

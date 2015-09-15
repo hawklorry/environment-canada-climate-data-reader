@@ -27,6 +27,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         Forstf = 18,
         Stemp = 19,
         Ltemp = 20,
-        Lowest = 21  
+        Num = 21,
+        Lowest = 22  
     }
 }

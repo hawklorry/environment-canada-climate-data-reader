@@ -26,7 +26,7 @@ namespace HAWKLORRY.HuzelnutSuitability
             HuzelnutSuitabilityProject project = new HuzelnutSuitabilityProject(
                 @"C:\dev\hezel_suitability\doc\gis\County_Southern_ONT.shp");
 
-            project.generateTable(2000, 2014);
+            project.generateTable(2000, 2014,true);
 
             //List<ECStationInfo> stations = project.getStationsAvailableInYearRange(2000, 2014);
             //for (int i = 0; i < stations.Count; i++)

@@ -16,6 +16,19 @@ namespace HAWKLORRY.HuzelnutSuitability
             _year = year;
         }
 
+
+        /// <summary>
+        /// The number of valid data points
+        /// </summary>
+        public double NumberOfValidData
+        {
+            get
+            {
+                if (_temps.Count == 0) return double.MinValue; //missing data all year
+                return _temps.Count(item => item.HasValue);
+            }
+        }
+
         /// <summary>
         /// Lowest min temperature
         /// </summary>
@@ -23,7 +36,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             get
             {
-                if (_temps.Count == 0) return double.MinValue;
+                if (_temps.Count == 0) return double.MinValue;//missing value
                 return _temps.Min(tmp => tmp.Min);
             }
         }
@@ -35,7 +48,7 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             get 
             {
-                if (_temps.Count == 0) return double.MinValue;
+                if (_temps.Count == 0) return double.MinValue;//missing value
                 IEnumerable<DailyTemperature> temps_in_range = _temps.Where(tmp => tmp.HasValue && tmp.Day.Month >= 5 && tmp.Day.Month <= 9);
                 if (temps_in_range.Count() == 0) return double.MinValue;
                 return temps_in_range.Average(tmp => tmp.Ave);
@@ -46,10 +59,12 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// Number of days with temperature continuously larger than -2
         /// </summary>
         /// <remarks>continuously is the key</remarks>
-        public int NumDayofFrostFree
+        public double NumDayofFrostFree
         {
             get
             {
+                if (_temps.Count == 0) return double.MinValue; //missing value
+
                 int days = 0;
                 foreach(DailyTemperature tmp in _temps)
                 {
@@ -67,21 +82,26 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// </summary>
         /// <param name="week">Week between 1 to 16, starting from March 1st</param>
         /// <returns></returns>
-        public int NumberofFrostInWeek(int week)
+        public double NumberofFrostInWeek(int week)
         {
+            if (_temps.Count == 0) return double.MinValue; //missing value
+
             DateTime startingDay = new DateTime(_year, 5, 1);
             DateTime firstDay = startingDay.AddDays((week - 1) * 7);
             DateTime lastDay = firstDay.AddDays(7);
+            if (_temps.Count(tmp => tmp.HasValue && tmp.Day >= firstDay && tmp.Day <= lastDay) == 0) return double.MinValue; //no data points in this week, treat it as missing value
+
             return _temps.Where(tmp => tmp.HasValue && tmp.Day >= firstDay && tmp.Day <= lastDay).Count(tmp => tmp.Min < -2.0);
         }
 
         /// <summary>
         /// Number of days with min temperature less than -40
         /// </summary>
-        public int NumberofLowTemp40
+        public double NumberofLowTemp40
         {
             get
             {
+                if (_temps.Count == 0) return double.MinValue; //missing value
                 return _temps.Where(tmp => tmp.HasValue).Count(tmp => tmp.Min <= -40);
             }
         }
@@ -89,10 +109,11 @@ namespace HAWKLORRY.HuzelnutSuitability
         /// <summary>
         /// Number of days with min temperature less than -28
         /// </summary>
-        public int NumberofLowTemp28
+        public double NumberofLowTemp28
         {
             get
             {
+                if (_temps.Count == 0) return double.MinValue; //missing value
                 return _temps.Where(tmp => tmp.HasValue).Count(tmp => tmp.Min <= -28);
             }
         }

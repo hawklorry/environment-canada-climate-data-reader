@@ -111,7 +111,7 @@ namespace HAWKLORRY.HuzelnutSuitability
                 sb.Append(",");
                 sb.Append(string.Format("{0}_{1}",type,year));                   
             }
-            if(type > HuzelnutSuitabilityCriteriaType.Sf_W16)
+            if(type > HuzelnutSuitabilityCriteriaType.Sf_W16 && type != HuzelnutSuitabilityCriteriaType.Num)
             {
                 sb.Append(",");
                 sb.Append(string.Format("{0}_{1}", type, "All"));
@@ -124,18 +124,19 @@ namespace HAWKLORRY.HuzelnutSuitability
             return sb.ToString();
         }
 
-        public void generateTable(int startYear, int endYear)
+        public void generateTable(int startYear, int endYear, bool generateStationShapefile = false)
         {
             for (int i = (int)(HuzelnutSuitabilityCriteriaType.Sf_W1); i <= (int)(HuzelnutSuitabilityCriteriaType.Lowest); i++)
-                generateTable(startYear, endYear, (HuzelnutSuitabilityCriteriaType)i);
+                generateTable(startYear, endYear, (HuzelnutSuitabilityCriteriaType)i, generateStationShapefile);
         }
 
-        public void generateTable(int startYear, int endYear, HuzelnutSuitabilityCriteriaType type)
+        public void generateTable(int startYear, int endYear, HuzelnutSuitabilityCriteriaType type, bool generateStationShapefile = false)
         {
             using (StreamWriter writer = new StreamWriter(getFinalTableFileName(type)))
             {
                 writer.WriteLine(getFinalTableHeader(startYear, endYear, type));
                 List<ECStationInfo> stations = getStationsAvailableInYearRange(startYear, endYear);
+                List<IFeature> stationsForCriteria = new List<IFeature>();
                 for (int i = 0; i < stations.Count; i++)
                 {
                     DailyTemperatureStatisticsMultipleYear statistics =
@@ -146,7 +147,23 @@ namespace HAWKLORRY.HuzelnutSuitability
 
                     //only write line when station has temperature data
                     if(!string.IsNullOrEmpty(criteria))
+                    {
                         writer.WriteLine(criteria);
+
+                        if (generateStationShapefile)
+                            stationsForCriteria.Add(stations[i].Feature);
+                    }                        
+                }
+
+                //generate the station shapefile
+                if (generateStationShapefile)
+                {
+                    FeatureSet stationsForCriteriaShapefile = new FeatureSet(stationsForCriteria);
+                    stationsForCriteriaShapefile.Projection = stations[0].Feature.ParentFeatureSet.Projection;
+                    stationsForCriteriaShapefile.SaveAs(
+                        Path.Combine(ShapefileFolder,
+                            string.Format("huzelnut_{0}_{1}_{2}.shp", startYear, endYear,type)), true
+                        );
                 }
             }
         }
@@ -214,7 +231,7 @@ namespace HAWKLORRY.HuzelnutSuitability
                 newShapefile.SaveAs(stationShapefile, true);
 
                 //add criteria fields
-                AddCriteriaFields(stationShapefile, startYear, endYear);
+                //AddCriteriaFields(stationShapefile, startYear, endYear);
             }
             return stationShapefile;
         }
