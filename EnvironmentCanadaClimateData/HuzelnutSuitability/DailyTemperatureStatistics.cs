@@ -69,16 +69,28 @@ namespace HAWKLORRY.HuzelnutSuitability
                 foreach(DailyTemperature tmp in _temps)
                 {
                     if (!tmp.HasValue) continue;
-                    if (tmp.Min > -2.0) days++;
-                    if (tmp.Min < -2.0 && tmp.Day.Month <= 7) days = 0;  //use July to separate the spring and fall
-                    if (tmp.Min < -2.0 && tmp.Day.Month > 7) break;     //already going to the fall
+                    if (tmp.Min > -2.0)
+                    {
+                        days++;
+                        //System.Diagnostics.Debug.WriteLine(string.Format("+++++ Add 1 day: {0},{1}, total: {2}", tmp.Day, tmp.Min,days));                        
+                    }
+                    if (tmp.Min <= -2.0 && tmp.Day.Month <= 7)
+                    {
+                        days = 0;  //use July to separate the spring and fall
+                        //System.Diagnostics.Debug.WriteLine(string.Format("----- Clear Results: {0},{1}, total: {2}", tmp.Day, tmp.Min, days));
+                    }
+                    if (tmp.Min <= -2.0 && tmp.Day.Month > 7)
+                    {
+                        //System.Diagnostics.Debug.WriteLine(string.Format("****** Stop: {0},{1}, total: {2}", tmp.Day, tmp.Min, days));
+                        break;     //already going to the fall
+                    }
                 }
                 return days;
             }
         }
 
         /// <summary>
-        /// Number of days with min temperature less thant -2
+        /// Number of days with min temperature less than -2
         /// </summary>
         /// <param name="week">Week between 1 to 16, starting from March 1st</param>
         /// <returns></returns>
@@ -86,9 +98,9 @@ namespace HAWKLORRY.HuzelnutSuitability
         {
             if (_temps.Count == 0) return double.MinValue; //missing value
 
-            DateTime startingDay = new DateTime(_year, 5, 1);
+            DateTime startingDay = new DateTime(_year, 3, 1); //starting from March not May!!!
             DateTime firstDay = startingDay.AddDays((week - 1) * 7);
-            DateTime lastDay = firstDay.AddDays(7);
+            DateTime lastDay = firstDay.AddDays(6);
             if (_temps.Count(tmp => tmp.HasValue && tmp.Day >= firstDay && tmp.Day <= lastDay) == 0) return double.MinValue; //no data points in this week, treat it as missing value
 
             return _temps.Where(tmp => tmp.HasValue && tmp.Day >= firstDay && tmp.Day <= lastDay).Count(tmp => tmp.Min < -2.0);

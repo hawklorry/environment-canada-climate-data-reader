@@ -94,16 +94,23 @@ namespace HAWKLORRY.HuzelnutSuitability
                         continue;
 
                     //ignore 99 and -99
-                    //some stations has data like this, like 4905 daily 12/27/2013 max temp = -99
-                    if (csv[5].Contains("99") || csv[7].Contains("99") || csv[9].Contains("99"))
+                    //some stations has data like this, like 4905 daily 12/27/2013 max temp = -99                    /
+                    if (csv[5].Trim().Equals("99") || csv[7].Trim().Equals("99") || csv[9].Trim().Equals("99") ||
+                        csv[5].Trim().Equals("-99") || csv[7].Trim().Equals("-99") || csv[9].Trim().Equals("-99"))
                         continue;
 
                     currentDay = DateTime.Parse(csv[0]);
                     var currentTemp = temps.Where(temp => temp.Day.Equals(currentDay));
                     DailyTemperature t = currentTemp.First<DailyTemperature>();
 
-                    t.Min = double.Parse(csv[5]);
-                    t.Max = double.Parse(csv[7]);
+                    t.Max = double.Parse(csv[5]);
+                    t.Min = double.Parse(csv[7]);
+                    if(t.Min > t.Max)
+                    {
+                        double temp = t.Max;
+                        t.Max = t.Min;
+                        t.Min = temp;
+                    }
                     t.Ave = double.Parse(csv[9]);
                 }
             }
@@ -132,14 +139,27 @@ namespace HAWKLORRY.HuzelnutSuitability
 
                         //ignore 99 and -99
                         //some stations has data like this, like 4905 daily 12/27/2013 max temp = -99
-                        if (csv[1].Contains("99") || csv[2].Contains("99") || csv[3].Contains("99"))
-                            continue;
+                        //this would cause some normal line is ignored, like ave temp = 17.99
+                        //if (csv[1].Contains("99") || csv[2].Contains("99") || csv[3].Contains("99"))
+                        //    continue;
 
                         DailyTemperature t = new DailyTemperature(DateTime.Parse(csv[0]));
                         t.Min = double.Parse(csv[1]);
                         t.Max = double.Parse(csv[2]);
+                        if (t.Min > t.Max)
+                        {
+                            double temp = t.Max;
+                            t.Max = t.Min;
+                            t.Min = temp;
+                        }
                         t.Ave = double.Parse(csv[3]);
                         t.FromHourly = bool.Parse(csv[4]);
+
+                        //ignore 99 and -99
+                        if (t.Min == 99 || t.Min == -99 ||
+                            t.Max == 99 || t.Max == -99 ||
+                            t.Ave == 99 || t.Ave == -99) continue;
+
                         temps.Add(t);
                     }
                 }
