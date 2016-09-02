@@ -23,7 +23,7 @@ namespace HAWKLORRY
 
         private static string DATA_REQUEST_URL_FORMAT = 
             DOMAIN +
-            "/climateData/bulkdata_e.html?" + 
+            "/climate_data/bulk_data_e.html?" + 
             "format=csv&stationID={0}&Year={1}&Month={2}&Day=1&timeframe={3}&submit=Download+Data";
 
         private static string[] SEARCH_TYPE = { "stnName", "stnProv" };
