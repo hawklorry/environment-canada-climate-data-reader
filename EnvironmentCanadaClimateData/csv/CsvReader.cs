@@ -1850,7 +1850,7 @@ namespace LumenWorks.Framework.IO.Csv
 				switch (_missingFieldAction)
 				{
 					case MissingFieldAction.ParseError:
-						HandleParseError(new MissingFieldCsvException(GetCurrentRawData(), currentPosition, Math.Max(0, _currentRecordIndex), fieldIndex), ref currentPosition);
+						//HandleParseError(new MissingFieldCsvException(GetCurrentRawData(), currentPosition, Math.Max(0, _currentRecordIndex), fieldIndex), ref currentPosition);
 						return value;
 
 					case MissingFieldAction.ReplaceByEmpty:
