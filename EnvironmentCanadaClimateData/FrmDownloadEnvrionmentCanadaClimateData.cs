@@ -29,7 +29,7 @@ namespace HAWKLORRY
             "Cool Deg Days (°C)","Total Rain (mm)","Total Snow (cm)","Total Precip (mm)",
             "Snow on Grnd (cm)","Dir of Max Gust (10s deg)","Spd of Max Gust (km/h)"};
 
-        private static int[] DATA_FIELD_INDEX_HOURLY = { 6, 8, 10, 12, 14, 16, 18, 20, 22 };
+        private static int[] DATA_FIELD_INDEX_HOURLY = { 5, 7, 9, 11, 13, 15, 17, 19, 21 };
         private static string[] DATA_FIELD_NAME_HOURLY = 
         {   "Temp (°C)", "Dew Point Temp (°C)", "Rel Hum (%)", "Wind Dir (10s deg)",
             "Wind Spd (km/h)", "Visibility (km)", "Stn Press (kPa)", "Hmdx", "Wind Chill"

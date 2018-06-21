@@ -18,7 +18,7 @@ namespace HAWKLORRY
     {
         private static string DOMAIN = "http://climate.weather.gc.ca";
 
-        private static int HEADER_LINE_HOURLY = 17;
+        private static int HEADER_LINE_HOURLY = 16;
         private static int HEADER_LINE_DAILY = 25;
 
         private static string DATA_REQUEST_URL_FORMAT = 
@@ -1065,7 +1065,7 @@ namespace HAWKLORRY
         {
             StringBuilder sb = new StringBuilder();
             int numofColumn = 27;
-            if (timeInterval == ECDataIntervalType.HOURLY) numofColumn = 25;
+            if (timeInterval == ECDataIntervalType.HOURLY) numofColumn = 24;
 
             //make sure field is valid
             foreach (int field in fields)
