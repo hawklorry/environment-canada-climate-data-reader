@@ -17,19 +17,19 @@ namespace HAWKLORRY
     {
         private int[] _fields = null;
         private string _path = "";
-        private int _startYear = 1840;
-        private int _endYear = 2013;        
+        private int _startYear = DateTime.Now.Year - 10;
+        private int _endYear = DateTime.Now.Year;        
 
         private List<ECStationInfo> _stations = null;
-        private bool _isDownloadAllStations = false;
+        private bool _isDownloadAllStations = true;
 
-        private static int[] DATA_FIELD_INDEX_DAILY = { 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25 };
+        private static int[] DATA_FIELD_INDEX_DAILY = { 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29 };
         private static string[] DATA_FIELD_NAME_DAILY = 
         {   "Max Temp (°C)","Min Temp (°C)","Mean Temp (°C)","Heat Deg Days (°C)",
             "Cool Deg Days (°C)","Total Rain (mm)","Total Snow (cm)","Total Precip (mm)",
             "Snow on Grnd (cm)","Dir of Max Gust (10s deg)","Spd of Max Gust (km/h)"};
 
-        private static int[] DATA_FIELD_INDEX_HOURLY = { 5, 7, 9, 11, 13, 15, 17, 19, 21 };
+        private static int[] DATA_FIELD_INDEX_HOURLY = { 9, 11, 13, 15, 17, 19, 21, 23, 25 };
         private static string[] DATA_FIELD_NAME_HOURLY = 
         {   "Temp (°C)", "Dew Point Temp (°C)", "Rel Hum (%)", "Wind Dir (10s deg)",
             "Wind Spd (km/h)", "Visibility (km)", "Stn Press (kPa)", "Hmdx", "Wind Chill"
@@ -73,7 +73,9 @@ namespace HAWKLORRY
 
             //time
             txtStartYear.TextChanged += (s, ee) => { int.TryParse(txtStartYear.Text, out _startYear); };
-            txtEndYear.TextChanged += (s, ee) => { int.TryParse(txtEndYear.Text, out _endYear); };
+            txtEndYear.TextChanged += (s, ee) => { 
+                int.TryParse(txtEndYear.Text, out _endYear); 
+            };
 
             //stations
             bDefineStations.Click += (s, ee) => 
@@ -171,6 +173,12 @@ namespace HAWKLORRY
                 };
             txtPath.TextChanged += (s, ee) => { if (System.IO.Directory.Exists(txtPath.Text)) _path = txtPath.Text; else txtPath.Text = _path; };
 
+            bGetLatestStationInfo.Click += (s, ee) =>
+            {
+                _isDownloadAllStations = true;
+
+                backgroundWorker1.RunWorkerAsync();
+            };
 
             //download button
             bDownload.Click += (s, ee) =>
@@ -210,6 +218,7 @@ namespace HAWKLORRY
                     progressBar1.Maximum = (_endYear - _startYear + 1) * 2;
                     _maxValueofProgressBar = progressBar1.Maximum;
 
+                    _isDownloadAllStations = false;
                     backgroundWorker1.RunWorkerAsync();
                 };
 
@@ -238,11 +247,27 @@ namespace HAWKLORRY
                     if (_isDownloadAllStations) //download all stations, update ecstations.csv
                     {
                         backgroundWorker1.ReportProgress(0, "Downloading all EC stations.");
+
+                        //get all station info to a new file
+                        var newStationLists = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\ecstations.csv";
                         EC.RetrieveAndSaveAllStations(
                             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\ecstations.csv",
                             backgroundWorker1);
+
+                        //overwrite existing system list
+                        try
+                        {
+                            File.Copy(newStationLists, EC.GetAllStationCSVFile());
+                            backgroundWorker1.ReportProgress(99, "Copied to system folder: " + EC.GetAllStationCSVFile());
+                        }
+                        catch
+                        {
+                            //do something here
+                            backgroundWorker1.ReportProgress(99, "Copy to " + EC.GetAllStationCSVFile() + " failed. Please do that manually.");
+                        }
+
                         backgroundWorker1.ReportProgress(100,
-                            "Downloading all EC stations finished. Location: " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\ecstations.csv");
+                            "Downloading all EC stations finished. Location: " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\ecstations.csv. Please restart the program to use the latest info.");
                     }
                     else//download daily, hourly data
                     {

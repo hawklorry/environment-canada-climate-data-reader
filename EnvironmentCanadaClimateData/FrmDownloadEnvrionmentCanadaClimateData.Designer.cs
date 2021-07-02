@@ -63,6 +63,7 @@
             this.rdbTimeIntervalDaily = new System.Windows.Forms.RadioButton();
             this.rdbTimeIntervalHourly = new System.Windows.Forms.RadioButton();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.bGetLatestStationInfo = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -73,7 +74,7 @@
             // 
             // bDownload
             // 
-            this.bDownload.Location = new System.Drawing.Point(308, 239);
+            this.bDownload.Location = new System.Drawing.Point(308, 241);
             this.bDownload.Name = "bDownload";
             this.bDownload.Size = new System.Drawing.Size(159, 23);
             this.bDownload.TabIndex = 0;
@@ -265,7 +266,7 @@
             this.rdbFormatSWATInput.AutoSize = true;
             this.rdbFormatSWATInput.Location = new System.Drawing.Point(7, 112);
             this.rdbFormatSWATInput.Name = "rdbFormatSWATInput";
-            this.rdbFormatSWATInput.Size = new System.Drawing.Size(140, 18);
+            this.rdbFormatSWATInput.Size = new System.Drawing.Size(140, 17);
             this.rdbFormatSWATInput.TabIndex = 0;
             this.rdbFormatSWATInput.TabStop = true;
             this.rdbFormatSWATInput.Text = "SWAT Input (.pcp, .tmp)";
@@ -276,7 +277,7 @@
             this.rdbFormatFreeCSV.AutoSize = true;
             this.rdbFormatFreeCSV.Location = new System.Drawing.Point(6, 89);
             this.rdbFormatFreeCSV.Name = "rdbFormatFreeCSV";
-            this.rdbFormatFreeCSV.Size = new System.Drawing.Size(140, 18);
+            this.rdbFormatFreeCSV.Size = new System.Drawing.Size(140, 17);
             this.rdbFormatFreeCSV.TabIndex = 0;
             this.rdbFormatFreeCSV.TabStop = true;
             this.rdbFormatFreeCSV.Text = "Free Format CSV (.csv)  ";
@@ -287,7 +288,7 @@
             this.rdbFormatFreeText.AutoSize = true;
             this.rdbFormatFreeText.Location = new System.Drawing.Point(6, 66);
             this.rdbFormatFreeText.Name = "rdbFormatFreeText";
-            this.rdbFormatFreeText.Size = new System.Drawing.Size(134, 18);
+            this.rdbFormatFreeText.Size = new System.Drawing.Size(134, 17);
             this.rdbFormatFreeText.TabIndex = 0;
             this.rdbFormatFreeText.TabStop = true;
             this.rdbFormatFreeText.Text = "Free Format Text (.txt)  ";
@@ -298,7 +299,7 @@
             this.rdbFormatArcSWATTxt.AutoSize = true;
             this.rdbFormatArcSWATTxt.Location = new System.Drawing.Point(7, 43);
             this.rdbFormatArcSWATTxt.Name = "rdbFormatArcSWATTxt";
-            this.rdbFormatArcSWATTxt.Size = new System.Drawing.Size(159, 18);
+            this.rdbFormatArcSWATTxt.Size = new System.Drawing.Size(159, 17);
             this.rdbFormatArcSWATTxt.TabIndex = 0;
             this.rdbFormatArcSWATTxt.TabStop = true;
             this.rdbFormatArcSWATTxt.Text = "ArcSWAT 2012 ASCII (.txt)  ";
@@ -309,7 +310,7 @@
             this.rdbFormatArcSWATDbf.AutoSize = true;
             this.rdbFormatArcSWATDbf.Location = new System.Drawing.Point(7, 20);
             this.rdbFormatArcSWATDbf.Name = "rdbFormatArcSWATDbf";
-            this.rdbFormatArcSWATDbf.Size = new System.Drawing.Size(166, 18);
+            this.rdbFormatArcSWATDbf.Size = new System.Drawing.Size(166, 17);
             this.rdbFormatArcSWATDbf.TabIndex = 0;
             this.rdbFormatArcSWATDbf.TabStop = true;
             this.rdbFormatArcSWATDbf.Text = "ArcSWAT 2009 dBase (.dbf)  ";
@@ -373,7 +374,7 @@
             this.rdbTimeIntervalMonthly.AutoSize = true;
             this.rdbTimeIntervalMonthly.Location = new System.Drawing.Point(148, 23);
             this.rdbTimeIntervalMonthly.Name = "rdbTimeIntervalMonthly";
-            this.rdbTimeIntervalMonthly.Size = new System.Drawing.Size(62, 18);
+            this.rdbTimeIntervalMonthly.Size = new System.Drawing.Size(62, 17);
             this.rdbTimeIntervalMonthly.TabIndex = 0;
             this.rdbTimeIntervalMonthly.TabStop = true;
             this.rdbTimeIntervalMonthly.Text = "Monthly";
@@ -384,7 +385,7 @@
             this.rdbTimeIntervalDaily.AutoSize = true;
             this.rdbTimeIntervalDaily.Location = new System.Drawing.Point(73, 22);
             this.rdbTimeIntervalDaily.Name = "rdbTimeIntervalDaily";
-            this.rdbTimeIntervalDaily.Size = new System.Drawing.Size(48, 18);
+            this.rdbTimeIntervalDaily.Size = new System.Drawing.Size(48, 17);
             this.rdbTimeIntervalDaily.TabIndex = 0;
             this.rdbTimeIntervalDaily.TabStop = true;
             this.rdbTimeIntervalDaily.Text = "Daily";
@@ -395,7 +396,7 @@
             this.rdbTimeIntervalHourly.AutoSize = true;
             this.rdbTimeIntervalHourly.Location = new System.Drawing.Point(7, 23);
             this.rdbTimeIntervalHourly.Name = "rdbTimeIntervalHourly";
-            this.rdbTimeIntervalHourly.Size = new System.Drawing.Size(55, 18);
+            this.rdbTimeIntervalHourly.Size = new System.Drawing.Size(55, 17);
             this.rdbTimeIntervalHourly.TabIndex = 0;
             this.rdbTimeIntervalHourly.TabStop = true;
             this.rdbTimeIntervalHourly.Text = "Hourly";
@@ -412,11 +413,21 @@
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Column";
             // 
+            // bGetLatestStationInfo
+            // 
+            this.bGetLatestStationInfo.Location = new System.Drawing.Point(473, 241);
+            this.bGetLatestStationInfo.Name = "bGetLatestStationInfo";
+            this.bGetLatestStationInfo.Size = new System.Drawing.Size(283, 23);
+            this.bGetLatestStationInfo.TabIndex = 16;
+            this.bGetLatestStationInfo.Text = "Get Lastest Station Info";
+            this.bGetLatestStationInfo.UseVisualStyleBackColor = true;
+            // 
             // FrmDownloadEnvrionmentCanadaClimateData
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(770, 605);
+            this.Controls.Add(this.bGetLatestStationInfo);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.lblFeedback);
@@ -488,5 +499,6 @@
         private System.Windows.Forms.RadioButton rdbTimeIntervalMonthly;
         private System.Windows.Forms.RadioButton rdbTimeIntervalDaily;
         private System.Windows.Forms.RadioButton rdbTimeIntervalHourly;
+        private System.Windows.Forms.Button bGetLatestStationInfo;
     }
 }

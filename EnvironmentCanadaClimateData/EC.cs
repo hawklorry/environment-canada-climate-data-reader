@@ -16,10 +16,10 @@ namespace HAWKLORRY
 {
     class ECRequestUtil
     {
-        private static string DOMAIN = "http://climate.weather.gc.ca";
+        private static string DOMAIN = "https://climate.weather.gc.ca";
 
-        private static int HEADER_LINE_HOURLY = 16;
-        private static int HEADER_LINE_DAILY = 25;
+        private static int HEADER_LINE_HOURLY = 1;
+        private static int HEADER_LINE_DAILY = 1;
 
         private static string DATA_REQUEST_URL_FORMAT = 
             DOMAIN +
@@ -30,22 +30,25 @@ namespace HAWKLORRY
         private static string STATION_NAME_SEARCH_FORMAT = "txtStationName={0}&searchMethod=contains&";
         private static string SEARCH_FORMAT =
             DOMAIN +
-            "/advanceSearch/searchHistoricDataStations_e.html?" +
+            "/historical_data/search_historic_data_stations_e.html?" +
             "searchType={0}&timeframe=1&{1}" +
-            "optLimit=yearRange&StartYear=1840&EndYear={2}&Year={2}&Month={3}&Day={4}&" +
-            "selRowPerPage={6}&cmdStnSubmit=Search&startRow={5}";
+            "lstProvince=&optLimit=yearRange&StartYear=1840&EndYear={2}&Year={2}&Month={3}&Day={4}&" +
+            "selRowPerPage={6}&startRow={5}";
 
 
         /// <summary>
         /// to request daily report for given station
         /// </summary>
         private static string DAILY_REPORT_FORMAT =
-            DOMAIN + "/climateData/dailydata_e.html?timeframe=2&StationID={0}";//to get latitude,Longitude and elevation
+            DOMAIN + "/climate_data/daily_data_e.html?timeframe=2&StationID={0}";//to get latitude,Longitude and elevation
 
         private static string sendRequest(string requestURL)
         {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpWebRequest r = WebRequest.Create(requestURL) as HttpWebRequest;
             r.Method = "GET";
+
             using (HttpWebResponse response = r.GetResponse() as HttpWebResponse)
             {
                 using (Stream stream = response.GetResponseStream())
@@ -276,7 +279,7 @@ namespace HAWKLORRY
         /// get default ecstations.csv in system temp folder. If doesn't exist, create using the resource file.
         /// </summary>
         /// <returns></returns>
-        private static string GetAllStationCSVFile()
+        public static string GetAllStationCSVFile()
         {
             string file = System.IO.Path.GetTempPath();
             file += @"ECReader\";
@@ -570,11 +573,14 @@ namespace HAWKLORRY
         public static List<ECStationInfo> FromEC(string htmlRequest,
             System.ComponentModel.BackgroundWorker worker = null)
         {
-            HtmlNodeCollection nodes = ECHtmlUtil.ReadAllNodes(htmlRequest, "//form[@action='/climateData/Interform.php']");
+            HtmlNodeCollection nodes = ECHtmlUtil.ReadAllNodes(htmlRequest, "//form[@action='/climate_data/interform_e.html']");
             List<ECStationInfo> stations = new List<ECStationInfo>();
             if (nodes == null || nodes.Count == 0) return stations;
             foreach (HtmlNode node in nodes)
             {
+                //skip if id has -sm to remove duplication
+                if (node.Attributes["id"].Value.Contains("-sm"))
+                    continue;
                 ECStationInfo info = new ECStationInfo(node);                
                 Debug.WriteLine(info);
                 if (worker != null)
@@ -611,30 +617,24 @@ namespace HAWKLORRY
                 out key, out _province);
 
             //read station name and available years from divs
-            HtmlNodeCollection allDataDivNodes =
-                ECHtmlUtil.ReadAllNodes(stationFormNode, "//div[@class='divTableRowOdd']");
-            if(allDataDivNodes == null)
-                allDataDivNodes =
-                ECHtmlUtil.ReadAllNodes(stationFormNode, "//div[@class='divTableRowEven']");
-            if (allDataDivNodes == null) return;
-
-            HtmlNode tableDataNode = allDataDivNodes[0];
-            allDataDivNodes = ECHtmlUtil.ReadAllNodes(tableDataNode, "//div[@class]");
-            if (allDataDivNodes == null) return;
-
+            var allDataDivNodes = ECHtmlUtil.ReadAllNodes(stationFormNode, "//div");
             _name = allDataDivNodes[0].InnerText.Trim(); //just read station name right now
             if (_name.Contains(',')) //some name has comma, like KEY LAKE, SK, just need first part, orelse it will conflict with csv format and would has problem when import in ArcMap
                 _name = _name.Split(',')[0].Trim();
 
 
             //try to retrieve latitude, longitude and elevation
-            HtmlNodeCollection tdNodes = ECHtmlUtil.ReadAllNodes(ECRequestUtil.RequestLatLongElevation(_id), "//td"); 
-            if (tdNodes == null) return;
+            var stationInfoPage = ECRequestUtil.RequestLatLongElevation(_id);
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(stationInfoPage);
+            var latitudeNode = htmlDoc.DocumentNode.SelectSingleNode("//div[@aria-labelledby='latitude']");  
+            _latitude = ECHtmlUtil.ReadLatitudeLongitude(latitudeNode);
 
-            _latitude = ECHtmlUtil.ReadLatitudeLongitude(tdNodes[0]);
-            _longitude = -ECHtmlUtil.ReadLatitudeLongitude(tdNodes[1]);
+            var longitudeNode = htmlDoc.DocumentNode.SelectSingleNode("//div[@aria-labelledby='longitude']");
+            _longitude = -ECHtmlUtil.ReadLatitudeLongitude(longitudeNode);
 
-            double.TryParse(tdNodes[2].ChildNodes[0].InnerText.Trim(), out _elevation);
+            var elevationNode = htmlDoc.DocumentNode.SelectSingleNode("//div[@aria-labelledby='elevation']");
+            double.TryParse(elevationNode.ChildNodes[0].InnerText.Trim(), out _elevation);
         }
 
         #endregion
@@ -1064,8 +1064,8 @@ namespace HAWKLORRY
         private bool write2FreeFormat(string resultsForOneYear, int[] fields, StreamWriter writer, bool needWriteHeader, FormatType format, ECDataIntervalType timeInterval = ECDataIntervalType.DAILY)
         {
             StringBuilder sb = new StringBuilder();
-            int numofColumn = 27;
-            if (timeInterval == ECDataIntervalType.HOURLY) numofColumn = 24;
+            int numofColumn = 31;
+            if (timeInterval == ECDataIntervalType.HOURLY) numofColumn = 28;
 
             //make sure field is valid
             foreach (int field in fields)
@@ -1079,7 +1079,7 @@ namespace HAWKLORRY
                 if (needWriteHeader)
                 {
                     string[] fieldNames = csv.GetFieldHeaders();
-                    sb.Append(formatFreeFormatData(fieldNames[0], format, true));
+                    sb.Append(formatFreeFormatData(fieldNames[4], format, true));
 
                     foreach (int field in fields)
                     {
@@ -1091,7 +1091,7 @@ namespace HAWKLORRY
                 }
                 while (csv.ReadNextRecord())
                 {
-                    date = csv[0];
+                    date = csv[4];
                     sb.Append(formatFreeFormatData(date, format, true));
 
                     foreach (int field in fields)
