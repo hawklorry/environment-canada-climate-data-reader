@@ -344,6 +344,17 @@ namespace HAWKLORRY
             return ECStationInfo.FromCSVDataRows(ALL_STATIONS_TABLE.Select(SQL));
         }
 
+        public static IEnumerable<string> Provinces
+        {
+            get 
+            {
+                var provinces = ALL_STATIONS_TABLE.DefaultView.ToTable(true, "PROVINCE");
+
+                foreach (DataRow r in provinces.Rows)
+                    yield return r[0].ToString();
+            }
+        }
+
     }
 
     enum ECSearchType

@@ -22,6 +22,11 @@ namespace HAWKLORRY
 
         private void FrmDefineStations_Load(object sender, EventArgs e)
         {
+            cmbProvince.Items.Clear();
+            cmbProvince.Items.Add("ALL");
+            foreach (var p in EC.Provinces)
+                cmbProvince.Items.Add(p);
+
             lsvResultByName.SelectedIndexChanged += (s, ee) =>
                 {
                     if (lsvResultByName.SelectedItems.Count == 0) return;
